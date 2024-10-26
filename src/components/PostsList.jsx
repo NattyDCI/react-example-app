@@ -2,38 +2,38 @@ import React, {useState} from 'react';
 import Post from "./Post.jsx";
 import classes from "./PostsList.module.css";
 import NewPost from './NewPost.jsx';
+import Modal from "./Modal.jsx"
 
 
 
-function PostsList(props) {
+function PostsList({ isPosting, onStopPosting }) {
+  const [ posts, setPosts ] = useState([]);
 
-  //the posts needs to have access to the state in order to update what has been entered
-  //but the event is in a different component, so we need to lift the state
-
-  const [bodyContent, setBodyContent] = useState('');
-  const [authorContent, setAuthorContent] = useState('');
-
-
-  // document.querySelector("textarea").addEventListener("change". function() {})
-  // this is the imperative approach. where you add event listeners, who will be triggered where the textarea changes
-  // in react we use the declarative approach
-
-  function bodyChangeHandler(event) {
-    setBodyContent(event.target.value)
-
+  function addPostHandler(postData) {
+    setPosts((existingPosts) => [postData, ...existingPosts]);
   }
-
-  function authorChangeHandler(event) {
-    setAuthorContent(event.target.value)
-  }
-
+  
   return (
     <>
-    <NewPost onBodyChange={bodyChangeHandler} onAuthorChange={authorChangeHandler}/>
-    <ul className={classes.posts}>
-        <Post author={authorContent} body={bodyContent}/>
-        <Post author="Manuel" body="Check out the full course!"/>
-    </ul>
+
+    {/* you haveß to have access to the state that defines if the modal is visible, or not. */}
+    { isPosting &&
+      < Modal 
+      onClose={onStopPosting} 
+      onClick={onStopPosting} >
+        <NewPost 
+          onCancel={onStopPosting}
+          onAddPost={addPostHandler}
+      />
+  </Modal> 
+    }
+    {posts.length > 0 &&   <ul className={classes.posts}>
+      {posts.map((post) => <Post author={post.author} key={post.body} body={post.body}/>)}
+    </ul>}
+
+    {posts.length === 0 && <Post author="" body="No Posts yet!"/>}
+    
+  
     </>
   )
 }
