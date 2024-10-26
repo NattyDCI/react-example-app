@@ -1,46 +1,15 @@
 import Modal from "../components/Modal";
 import classes from "./NewPost.module.css";
-import { useState } from "react";
-import { Link } from "react-router-dom"
+import { Link, Form, redirect } from "react-router-dom"
 
-function NewPost({ onAddPost }) {
-
-  const [ posts, setPosts ] = useState([]);
-
-  function onAddPost(postData) {
-    setPosts((existingPosts) => [postData, ...existingPosts]);
-  }
-  const [bodyContent, setBodyContent] = useState("");
-  const [authorContent, setAuthorContent] = useState("");
-
-  // document.querySelector("textarea").addEventListener("change". function() {})
-  // this is the imperative approach. where you add event listeners, who will be triggered where the textarea changes
-  // in react we use the declarative approach
-
-  function bodyChangeHandler(event) {
-    setBodyContent(event.target.value);
-  }
-
-  function authorChangeHandler(event) {
-    setAuthorContent(event.target.value);
-  }
-
-  function submitHandler(event) {
-    event.preventDefault();
-    const postData = {
-      body: bodyContent,
-      author: authorContent,
-    };
-    onAddPost(postData);
-    console.log(postData)
-  }
+function NewPost() {
 
   return (
     <Modal>
-      <form className={classes.form} onSubmit={submitHandler}>
+      <Form method="post" className={classes.form} >
         <p>
           <label htmlFor="body">Text</label>
-          <textarea id="body" required rows={3} onChange={bodyChangeHandler} />
+          <textarea id="body" name="body" required rows={3} />
         </p>
         <p>
           <label htmlFor="name">Author</label>
@@ -48,7 +17,7 @@ function NewPost({ onAddPost }) {
             type="text"
             id="name"
             required
-            onChange={authorChangeHandler}
+            name="author"
           />
         </p>
         <p className={classes.actions}>
@@ -57,9 +26,26 @@ function NewPost({ onAddPost }) {
           </Link>
           <button type="submit">Submit</button>
         </p>
-      </form>
+      </Form>
     </Modal>
   );
 }
 
+// this form Tag coming from react-router-dom creates a request object wich contains a method, wich we could use on the action to find out wich form was submitted in case we have different forms with the same action.
+
 export default NewPost;
+
+
+export async function action({request}) {
+  const formData = await request.formData(); 
+  const postData = Object.fromEntries(formData); // {body: "...", author:"..."}
+  await fetch("http://localhost:8080/posts", {
+    method: "POST",
+    body: JSON.stringify(postData),
+    headers: {
+      "Content-Type": "application/json"
+    },
+  });
+  return redirect("/");
+}
+
